@@ -15,8 +15,9 @@ import {
 } from './game-input.input';
 import { Game } from './dto/game.dto';
 import { GamesService } from './games.service';
-import { Turn } from 'src/enums';
+import { Turn } from './enums';
 import { PubSub } from 'graphql-subscriptions';
+import { RoomsService } from 'src/rooms/rooms.service';
 
 const pubSub = new PubSub();
 
@@ -24,6 +25,9 @@ const pubSub = new PubSub();
 export class GamesResolver {
   @Inject()
   private gamesService: GamesService;
+
+  @Inject()
+  private roomsService: RoomsService;
 
   @Query((returns) => [Game])
   public async games(): Promise<Game[]> {
@@ -45,7 +49,13 @@ export class GamesResolver {
   public async createGame(
     @Args('input') input: CreateGameInput,
   ): Promise<Game> {
-    return await this.gamesService.createGame(input.user);
+    const game = await this.gamesService.createGame(input.user);
+
+    if(input.roomId) {
+      await this.roomsService.createRoomGame(input.roomId, game);
+    }
+
+    return game;
   }
 
   @Mutation((returns) => Game)

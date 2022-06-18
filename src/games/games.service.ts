@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { GameStatus, Turn } from 'src/enums';
+import { GameStatus, Turn } from './enums';
 import { GameDocument } from './game.schema';
 import { Game as GameType, PlayerGameResult } from './dto/game.dto';
 
@@ -14,21 +14,13 @@ export class GamesService {
   public async getAllGames(): Promise<GameType[]> {
     const games = await this.game.find({});
 
-    return games.map((game) => ({
-      id: game._id,
-      players: game.players || [],
-      status: game.status,
-    })) as GameType[];
+    return games.map((game) => this.mapGameToGameType(game)) as GameType[];
   }
 
   public async getGame(id: string): Promise<GameType> {
     const game = await this.game.findById(id);
 
-    return {
-      id: game._id,
-      players: game.players || [],
-      status: game.status,
-    } as GameType;
+    return this.mapGameToGameType(game);
   }
 
   public async createGame(admin: string): Promise<GameType> {
@@ -37,15 +29,16 @@ export class GamesService {
       status: GameStatus.NotStarted,
     });
 
-    return {
-      id: game._id,
-      players: game.players,
-      status: game.status,
-    } as GameType;
+    return this.mapGameToGameType(game);
   }
 
   public async joinGame(id: string, player: string): Promise<GameType> {
     const game = await this.game.findById(id);
+
+    if (game.players.includes(player)) {
+      throw new Error('User with that name already exists');
+    }
+
     const players = [...game.players, player];
     const waitingPlayers = players;
 
@@ -55,9 +48,7 @@ export class GamesService {
     );
 
     return {
-      id: game._id,
-      players,
-      status: game.status,
+      ...this.mapGameToGameType(game),
       waitingPlayers,
     } as GameType;
   }
@@ -70,14 +61,7 @@ export class GamesService {
 
     const game = await this.game.findById(id);
 
-    return {
-      id: game._id,
-      players: game.players || [],
-      waitingPlayers: game.waitingPlayers,
-      status: game.status,
-      turns: [],
-      playerGameResults: game.playerGameResults || [],
-    } as GameType;
+    return this.mapGameToGameType(game);
   }
 
   public async turn(gameId: string, player: string, turn: Turn) {
@@ -87,7 +71,7 @@ export class GamesService {
       throw new Error();
     }
 
-    const turns = (game.turns || []).concat([{ player, turn }]);
+    const turns = [...game.turns, { player, turn }];
     const waitingPlayers = game.waitingPlayers.filter(
       (waitingPlayer) => waitingPlayer !== player,
     );
@@ -98,11 +82,8 @@ export class GamesService {
     );
 
     return {
-      id: game._id,
-      players: game.players || [],
-      status: game.status,
-      turns: turns,
-      playerGameResults: game.playerGameResults || [],
+      ...this.mapGameToGameType(game),
+      turns,
     } as GameType;
   }
 
@@ -140,12 +121,19 @@ export class GamesService {
     );
 
     return {
+      ...this.mapGameToGameType(game),
+      playerGameResults,
+    };
+  }
+
+  private mapGameToGameType(game: any): GameType {
+    return {
       id: game._id,
       players: game.players || [],
       status: game.status,
       turns: game.turns,
       waitingPlayers: game.waitingPlayers,
-      playerGameResults,
+      playerGameResults: game.playerGameResults,
     } as GameType;
   }
 }

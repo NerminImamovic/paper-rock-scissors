@@ -5,10 +5,11 @@ import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GamesModule } from './games/games.module';
+import { RoomsModule } from './rooms/rooms.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(process.env.MONGO_URL),
+    MongooseModule.forRoot('mongodb://localhost:27017/games'),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
@@ -17,6 +18,7 @@ import { GamesModule } from './games/games.module';
       },
     }),
     GamesModule,
+    RoomsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

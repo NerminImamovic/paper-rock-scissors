@@ -1,16 +1,16 @@
 import { InputType, Field, ID } from '@nestjs/graphql';
 
 @InputType()
-export class CreateGameInput {
+export class CreateRoomInput {
   @Field()
-  readonly user: string;
+  readonly admin: string;
 
   @Field()
-  roomId?: string;
+  readonly name: string;
 }
 
 @InputType()
-export class JoinGameInput {
+export class JoinRoomInput {
   @Field(() => ID)
   readonly id: string;
 

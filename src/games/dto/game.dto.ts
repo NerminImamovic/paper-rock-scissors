@@ -1,6 +1,6 @@
 import { Field, ObjectType, ID } from '@nestjs/graphql';
 import { IsArray, IsString } from 'class-validator';
-import { GameStatus } from 'src/enums';
+import { GameStatus } from '../enums';
 
 @ObjectType()
 export class Turn {

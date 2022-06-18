@@ -1,9 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { GameStatus, Turn } from 'src/enums';
+import { GameStatus, Turn } from './enums';
 import { PlayerGameResult } from './dto/game.dto';
-
-// export type GameDocument =
 
 @Schema()
 export class Game {
@@ -24,6 +22,9 @@ export class Game {
 
   @Prop()
   playerGameResults: PlayerGameResult[];
+
+  @Prop()
+  roomId?: string;
 }
 
 export type GameDocument = Game & Document;
